@@ -1,0 +1,14 @@
+<!-- Here we need to specify which html layout to extend. -->
+{% extends "tasks/layout.html" %}
+
+<!-- And specify what content between block body to fill in that layout. -->
+{% block body %}
+    <h1>Tasks</h1>
+    <ul>
+        {% for task in tasks %}
+        <li>{{ task }}</li>
+        {% endfor %}
+    </ul>
+    <!-- We can link the add router by refering its name -->
+    <a href="{% url 'tasks:add' %}">Add a New Taks</a>
+{% endblock %}

@@ -82,9 +82,55 @@ def greet(request, name):
     })
 ```
 
-In the `templates/hello/index.html` file, we can pass the *name* variable by using {{ name }}. If we need to write python logic in the html file, use {% python code %} fomart.
+In the `templates/hello/index.html` file, we can pass the *name* variable by using {{ name }}. If we need to write python logic in the html file, use {% python code %} fomart. For example,
+
+```html
+    <body>
+        {% if newyear %}
+            <h1> YES </h1>
+        {% else %}
+            <h1> NO </h1>
+        {% endif %}
+    </body>
+```
+
+If using *for* loop, we can write a code like `{% for t in list %}`, with {% endfor %} to end the loop.
+
+Moreover, we can refer to css file (static-type file, which does not require changes very often) in this html file by adding `<link href="{% static 'hello/style.css' %}" rel="stylesheet"`>, and adding `{% load static %}`. Meanwhile, we need to create a *static* folder under the folder of the applicaiton, and then create a folder with same name as the application, in which create a css file named `static`.
 
 
+### Template inheritance
 
+If many web pages in an application share a similar layout, we can build a basic layout, which can be inheritated by all of web pages in that application to avoid repetition. To do so, create a `layout.html` file under the `templates/<app_name>` folder, and write down the layout.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Tasks</title>
+    </head>
+    <body>
+        {% block body %}
+        {% endblock %}
+    </body>
+</html>
+```
+
+And we can fill `{% block body %}` with the changes in each page. For example, in the `index.html` file, first we need to write `{% extends "tasks/layout.html" %}`, and in the body block section, we can write down the content.
+
+```html
+{% extends "tasks/layout.html" %}
+
+{% block body %}
+    <h1>Tasks</h1>
+    <ul>
+        {% for task in tasks %}
+        <li>{{ task }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+```
+
+We can also add a link in the body block by adding a line of code `<a href="{% url 'add' %}">Add a New Taks</a>`, where `add` in the name of the url that we want to link. Note that it may occur collision if the name of the url in this application is the same as that in other application. So here we could give it a name to the application by adding `app_name = "tasks"` in the application `urls.py` file and specify which application url to link by adding the name in the href, e.g. `'tasks:add'`.
 
 
