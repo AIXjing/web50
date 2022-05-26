@@ -133,4 +133,23 @@ And we can fill `{% block body %}` with the changes in each page. For example, i
 
 We can also add a link in the body block by adding a line of code `<a href="{% url 'add' %}">Add a New Taks</a>`, where `add` in the name of the url that we want to link. Note that it may occur collision if the name of the url in this application is the same as that in other application. So here we could give it a name to the application by adding `app_name = "tasks"` in the application `urls.py` file and specify which application url to link by adding the name in the href, e.g. `'tasks:add'`.
 
+### Form
 
+To make a dynamic form, that is we can update the form every time pressing submit button in the page, we can add properties `method="post"` in the `form` tag in the html file. 
+
+To return back to the previous page, we can add the property `action="{% url 'tasks:add' %}"` in the `form` tag.
+
+When the request is the *POST* type, we need to specify authentification. Thus, we need to add  `{% csrf_token %}` in the POST action. With this token, each session (can be considered as a user) is assinged an unique token. Every time a POST request is sent with that token so that the server can validate the POST request。
+
+Django also provides a *forms* class to help us easily deal with form, and we can create a class like below:
+
+```py
+class NewTaskForm(forms.Form):
+    task = forms.CharField(label="New Task")
+    priority = forms.IntegerField(label="Priority", min_value=1, max_value=10)
+```
+
+
+### Migrate
+
+To create a table to store the data for each user, run `python3 manage.py migrate`
