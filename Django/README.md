@@ -61,8 +61,9 @@ In the curly brackets, we can also pass a method, e.g., `name.capitcalize()` to 
 
 In the application *urls.py* file, we need to add *greet* url accordingly `path("<str:name>", views.greet, name="greet")` with `name` passing as a variable.
 
+The `HttpResponse` can also take *html* elements, .e.g. `HttpResponse("<h1 style=\"color:blue\">Hello, World"</h1>")`. Although it is doable, it would be a bad design. The good practice is to seperate *html* and *css* files. This is where it would be better to use [Django templates](https://docs.djangoproject.com/en/4.0/topics/templates/).
 
-#### render url
+### Django templates
 
 Aside from requesting a web page, we can also render the whole url in the application, which helps seperate python and html logic.
 
@@ -73,7 +74,7 @@ def index(request):
 
 Then create a folder named *templates*. Under the *templates* folder, create a folder named as the same as the application name, e.g., *hello*; and under this folder, create a `index.html` file where we can write html.
 
-Additionally, we can added the third arguement (a dict) to pass a variable to the html file in the `render()` method, e.g.,
+Additionally, we can added the third arguement (a dict) to pass a variable to the html file in the `render()` method to change the content of out *html* files based on the URL visited by using [Django's template language](https://docs.djangoproject.com/en/4.0/ref/templates/language/), e.g.,
 
 ```py
 def greet(request, name):
@@ -96,7 +97,7 @@ In the `templates/hello/index.html` file, we can pass the *name* variable by usi
 
 If using *for* loop, we can write a code like `{% for t in list %}`, with {% endfor %} to end the loop.
 
-Moreover, we can refer to css file (static-type file, which does not require changes very often) in this html file by adding `<link href="{% static 'hello/style.css' %}" rel="stylesheet"`>, and adding `{% load static %}`. Meanwhile, we need to create a *static* folder under the folder of the applicaiton, and then create a folder with same name as the application, in which create a css file named `static`.
+Moreover, we can refer to css file (static-type file, which does not require changes very often) in this html file by using Django-specific syntax `<link href="{% static 'hello/style.css' %}" rel="stylesheet"`>, and adding `{% load static %}` on the top of the *html* file. Meanwhile, we need to create a *static* folder under the folder of the applicaiton, and then create a folder with same name as the application, in which create a css file named `static`.
 
 
 ### Template inheritance
@@ -133,13 +134,13 @@ And we can fill `{% block body %}` with the changes in each page. For example, i
 
 We can also add a link in the body block by adding a line of code `<a href="{% url 'add' %}">Add a New Taks</a>`, where `add` in the name of the url that we want to link. Note that it may occur collision if the name of the url in this application is the same as that in other application. So here we could give it a name to the application by adding `app_name = "tasks"` in the application `urls.py` file and specify which application url to link by adding the name in the href, e.g. `'tasks:add'`.
 
-### Form
-
 To make a dynamic form, that is we can update the form every time pressing submit button in the page, we can add properties `method="post"` in the `form` tag in the html file. 
 
 To return back to the previous page, we can add the property `action="{% url 'tasks:add' %}"` in the `form` tag.
 
-When the request is the *POST* type, we need to specify authentification. Thus, we need to add  `{% csrf_token %}` in the POST action. With this token, each session (can be considered as a user) is assinged an unique token. Every time a POST request is sent with that token so that the server can validate the POST request。
+When the request is the *POST* type, Django requires a token to prevent *Cross-Site Request Forgery (CSRF) Attack*. Thus, we need to add  `{% csrf_token %}` in the POST action. With this token, each session (can be considered as a user) is assinged an unique token. Every time a POST request is sent with that token so that the server can validate the POST request。
+
+### Django Forms
 
 Django also provides a *forms* class to help us easily deal with form, and we can create a class like below:
 
@@ -149,7 +150,12 @@ class NewTaskForm(forms.Form):
     priority = forms.IntegerField(label="Priority", min_value=1, max_value=10)
 ```
 
+Then we can create a form by creating the *NewTaskForm* class. `forms.Form` in the parentheses after *NewTaskForm* indicates that the new form we are going to create inherits from a class called *Form* that is included in the *forms* module.
 
-### Migrate
+### Session and Migrate
+
+At this point, we’ve successfully built an application that allows us to add tasks to a growing list. However, it may be a problem that we store these tasks as a global variable, as it means that all of the users who visit the page see the exact same list. In order to solve this problem we’re going to employ a tool known as **sessions**.
+
+*Sessions* are a way to store unique data on the server side for each new visit to a website. To use sessions in our application, we’ll first delete our global `tasks` variable, then alter our `index` function, and finally make sure that anywhere else we had used the variable `tasks`, we replace it with `request.session["tasks"]`.
 
 To create a table to store the data for each user, run `python3 manage.py migrate`
