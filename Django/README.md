@@ -219,3 +219,15 @@ def index(request):
 ### Django Admin
 
 To easily create new objects for developers, Django provides a *default admin interface*. First we need to create an adminstrative user by `python3 manage.py createsuperuser`. Then we must add our models to the admin application by entering `admin.py`, importing and registering our models. If we run server and go to `/admin` endpoint, we will see an administrative interface. 
+
+We can also configurate display settings of the interface by defining class in `admin.py` e.g., 
+
+```python
+class FlightAdmin(admin.ModelAdmin):
+    list_display = ("id", "origin", "destination", "duration")
+```
+
+Then, apply the class in the models `admin.site.register(Flight, FlightAdmin)`
+
+
+### Authentification
