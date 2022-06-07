@@ -159,3 +159,63 @@ At this point, we’ve successfully built an application that allows us to add t
 *Sessions* are a way to store unique data on the server side for each new visit to a website. To use sessions in our application, we’ll first delete our global `tasks` variable, then alter our `index` function, and finally make sure that anywhere else we had used the variable `tasks`, we replace it with `request.session["tasks"]`.
 
 To create a table to store the data for each user, run `python3 manage.py migrate`
+
+### Django model
+
+Generally, each model maps to a single databse table. The basics:
+
+- Each model is a Python class that subclasses `django.db.models.Model`
+
+- Each attribute of the model represents a database field
+
+- With all of this, Django gives you an automatically-generated database-access API.
+
+To create *model*, we need to go to `models.py` writing a few lines of code:
+
+```py
+class Flight(models.Model):
+    origin = models.CharField(max_length=64)
+    destination = models.CharField(max_length=64)
+    duration = models.IntegerField()
+```
+
+### Migration
+
+To create a database from our models, run `python3 manage.py makemigrations` in the main directory.
+
+To apply migration, run `python3 manage.py migrate`
+
+To manipulate or execute sql, we can use Python through *Django Shell* by running `python3 manage.py shell`. Then, we could run python code in the console.
+
+```py
+# import newly-created class Flight
+# flights are the app name and models is a folder in the app
+from flights.models import Flight
+
+f = Flight(origin="New York", destination="London", duration=415)
+f.save()
+```
+
+To retrieve the data, use the syntax `Flight.objects.all()`, a query for all flights stored in the database. The output will be an object form like `<QuerySet [<Flight: Flight object (1)>]>`.
+
+To explicitely show the object enties, we can define a `__str__` function that provides instructions for how to turn a Flight object into a string in the `Flight` class. For example,
+
+```python
+def __str__(self):
+        return f"{self.id}: {self.origin} to {self.destination}"
+```
+
+To exit Django shell, press `control` + `D`
+
+To build an application that can interact with this database, we can pass the object entries directly through response syntax. 
+```python
+# in views.py
+def index(request):
+    return render(request, "flights/index.html", {
+        "flights": Flight.objects.all()
+    })
+```
+
+### Django Admin
+
+To easily create new objects for developers, Django provides a *default admin interface*. First we need to create an adminstrative user by `python3 manage.py createsuperuser`. Then we must add our models to the admin application by entering `admin.py`, importing and registering our models. If we run server and go to `/admin` endpoint, we will see an administrative interface. 
