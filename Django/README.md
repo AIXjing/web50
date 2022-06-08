@@ -231,3 +231,5 @@ Then, apply the class in the models `admin.site.register(Flight, FlightAdmin)`
 
 
 ### Authentification
+
+Django provides an easy way to implement log-in and log-out functions. We can easily use the built-in package by import it to the `views.py` e.g., `from django.contrib.auth import authenticate, login, logout`. Then, we could check if username and password are correct by `user = authenticate(request, username=username, password=password)`, or use log in function `login(request)`
