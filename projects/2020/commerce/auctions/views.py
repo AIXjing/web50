@@ -3,12 +3,18 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from .models import Listing
 
 from .models import User
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    return render(request, "auctions/index.html", {
+        "Listings": Listing.objects.all(),
+    })
+
+def create(request):
+    return 
 
 
 def login_view(request):
