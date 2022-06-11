@@ -1,0 +1,24 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Listing</h2>
+
+    <div style="border: 10px; padding:1%; background-color: gainsboro; margin-bottom: 1%;">
+        {{ listing.id }}. 
+        <div>{{ listing.title }}</div>
+        <div>Price: ${{listing.current_bid}}</div>
+        <div>{{ listing.destination }}</div>{{ listing.destination }}
+        <div>Created at: {{ listing.created_date }} by {{ listing.creator}}</div>
+    </div>
+
+    
+        <form action="{% url 'listing' listing.id %}" method="POST">
+            {% csrf_token %}
+            {% if is_watched %}
+                <input type="submit" value="Remove from WatchList">
+            {% else %}
+                <input type="submit" name="remove_from_wishlist" value="Add it to WatchList">
+            {% endif %}
+        </form>
+    
+{% endblock %}

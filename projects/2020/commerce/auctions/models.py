@@ -20,6 +20,9 @@ class Listing(models.Model):
     starting_bid = models.FloatField(blank=True, null=True)
     current_bid = models.FloatField(blank=True, null=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    # for watchlist: many to many relationships. 
+    # a listing can be watched by many users, and a user can watch many listings.
+    watchers = models.ManyToManyField(User, blank=True, related_name="wishlistings")
     category = models.CharField(
         max_length=24,
         choices = CATEGORY_CHOICES,

@@ -1,9 +1,9 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
+    <h2>Wish Listings</h2>
 
-    {% for listing in Listings %}
+    {% for listing in wishlistings %}
         <a href="{% url 'listing' listing.id %}">
             <div style="border: 10px; padding:1%; background-color: gainsboro; margin-bottom: 1%;">
                 {{ listing.id }}. 
