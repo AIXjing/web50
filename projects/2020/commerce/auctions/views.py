@@ -22,7 +22,7 @@ def create(request):
         starting_bid = request.POST["starting_bid"]
         category = request.POST["category"]
         created_date = datetime.now
-        creator = request.user
+        creator = request.user  
         
         # create an object with above parameters
         list = Listing(
