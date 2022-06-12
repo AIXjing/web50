@@ -6,6 +6,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from .models import Listing
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 from .models import User
 
@@ -15,6 +17,7 @@ def index(request):
         "Listings": Listing.objects.all(),
     })
 
+@login_required
 def create(request):
     if request.method == "POST":
         title = request.POST["title"]
@@ -32,11 +35,11 @@ def create(request):
             current_bid = starting_bid,
             category = category,
             created_date = created_date,
-            creator = creator
+            creator = creator,
+            # is_active = True,
+            current_bidder = request.user,
         )
         list.save()
-
-        # once a new list is created, return to the home page.
         return HttpResponseRedirect(reverse("index"))
 
     return render(request, "auctions/create.html", {
@@ -44,28 +47,52 @@ def create(request):
     })
 
 # show listing page
+@login_required
 def listing(request, listing_id):
     listing = Listing.objects.get(id=listing_id)
 
-    # check if the listing is alreayding in the watchlist
+    # check if the listing is already in the watchlist of this user
     user = request.user
-    # check if user is logged in
-    if user:
-        is_watched = listing.watchers.filter(wishlistings = listing.id)
-
-        if request.method == "POST": 
+    is_watched = user.wishlistings.filter(id=listing.id)
+    # is_watched = listing.watchers.filter(wishlistings = listing.id)
+    if request.method == "POST": 
+        # check if it is the post for watchlist
+        if "update_watchlist" in request.POST: 
             if not is_watched: # add the listing to watchlist
                 listing.watchers.add(user)
-                return HttpResponseRedirect(reverse("listing", args=(listing.id,)))
             else: # remove from the listing to watchlist
                 listing.watchers.remove(user)
-                return HttpResponseRedirect(reverse("listing", args=(listing.id,)))
-    else: 
-        return login_view(request)
+            return HttpResponseRedirect(reverse("listing", args=(listing.id,)))
+
+            # if the post is to submit a bit
+        elif "submit_bid" in request.POST: 
+            bid = float(request.POST["bid"])
+            # set restrictions for new bid
+            previous_bid = listing.current_bid
+            if bid > previous_bid:
+                listing.current_bid = bid
+                listing.current_bidder = user
+                listing.save()
+                messages.success(request, 'Successfully bid.')
+            else:
+                messages.warning(request, 'Invalid bid.')
+            return HttpResponseRedirect(reverse("listing", args=(listing.id,)))
+
+    # user as the creator is able to close the auction
+    m = ""
+    if request.method == "POST" and "close_auction" in request.POST:
+        if user == listing.creator:
+            listing.is_active = False
+            listing.save()
+            m = "The bid is closed."
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            m = "You are not the creator!"
 
     return render(request, "auctions/listing.html", {
         "listing": listing,
-        "is_watched": is_watched
+        "is_watched": is_watched,
+        "m" : m
     })
 
 # show watchlist page
@@ -73,6 +100,17 @@ def watchlist(request):
     user = request.user
     return render(request, "auctions/watchlist.html", {
         "wishlistings": user.wishlistings.all(),
+    })
+
+# show closed listings if user owns the auction
+@login_required
+def closed_listings(request):
+    owned_auctions = Listing.objects.filter(
+        is_active = False,
+        current_bidder = request.user,
+        )
+    return render(request, "auctions/closed_listings.html", {
+        "listings" : owned_auctions,
     })
 
 def login_view(request):
@@ -93,7 +131,6 @@ def login_view(request):
             })
     else:
         return render(request, "auctions/login.html")
-
 
 def logout_view(request):
     logout(request)

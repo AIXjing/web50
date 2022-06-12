@@ -1,3 +1,4 @@
+from unittest.mock import DEFAULT
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -19,10 +20,12 @@ class Listing(models.Model):
     created_date = models.DateTimeField(auto_now=True)
     starting_bid = models.FloatField(blank=True, null=True)
     current_bid = models.FloatField(blank=True, null=True)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="creator")
+    current_bidder = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="winner")
     # for watchlist: many to many relationships. 
     # a listing can be watched by many users, and a user can watch many listings.
     watchers = models.ManyToManyField(User, blank=True, related_name="wishlistings")
+    is_active = models.BooleanField(default=True)
     category = models.CharField(
         max_length=24,
         choices = CATEGORY_CHOICES,

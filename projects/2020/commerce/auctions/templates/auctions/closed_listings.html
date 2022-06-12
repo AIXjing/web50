@@ -1,0 +1,16 @@
+{% extends "auctions/layout.html" %} 
+
+{% block body %}
+    <h2>Closed Listings</h2>
+
+    {% for listing in listings %}
+        <a href="{% url 'listing' listing.id %}">
+            <div style="border: 10px; padding:1%; background-color: gainsboro; margin-bottom: 1%;">
+                {{ listing.id }}. 
+                <div>{{ listing.title }}</div>
+                <div>Price: ${{listing.current_bid}}</div>
+                <div>Winner: {{listing.current_bidder}} </div>
+            </div>
+        </a>
+    {% endfor %} 
+{% endblock %}
