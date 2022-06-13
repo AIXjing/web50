@@ -4,23 +4,28 @@
     <h2>Listing</h2>
 
     <div style="border: 10px; padding:1%; background-color: gainsboro; margin-bottom: 1%;">
-        {{ listing.id }}. 
-        <div>{{ listing.title }}</div>
-        <div>Description from the creator: {{ listing.description }}</div>
-        <div>Created at: {{ listing.created_date }}</div>
-        <div>Creator: {{ listing.creator }}</div>
-        <div>Price: ${{listing.current_bid}}</div>
+        <div><h4>{{ listing.title }}</h4></div>
+        <div><b>Category: </b>{{ listing.category.capitalize }}</div>
+        <div><b>Description from the creator: </b>{{ listing.description }}</div>
+        <div><b>Created at: </b>{{ listing.created_date }}</div>
+        <div><b>Creator: </b>{{ listing.creator }}</div>
+        <div><b>Price: </b>${{listing.current_bid}}</div>
         {% if listing.is_active %}
-            
             <div>Auction is on-going.</div>
         {% else %}
             <div>Acution is finished.</div>
             <div>{{ listing.current_bidder }} won the auction. </div>
         {% endif %}
+        </br>
+        <div><b>Comments:</b></div>
+        {% for comment in comments %}
+            <div>{{ comment.commentor }}: {{ comment.comment_content }}</div>
+        {% endfor %}
     </div>
     
-    <!-- Add to watchlist form -->
+   
     {% if listing.is_active %}
+        <!-- Add to watchlist form -->
         <form action="{% url 'listing' listing.id %}" method="POST">
             {% csrf_token %}
             {% if is_watched %}
@@ -29,7 +34,6 @@
                 <input type="submit" name="update_watchlist" value="Add it to WatchList">
             {% endif %}
         </form>
-
         </br>
 
         <!-- bid form  -->
@@ -44,13 +48,24 @@
                 {% endfor %}
             {% endif %}
         </form>
+        </br>
 
-        <!-- a button to close auction -->
+        <!-- Add comment -->  
         <form action="{% url 'listing' listing.id %}" method="POST">
             {% csrf_token %}
-            <input type="submit" name="close_auction" value="close">
-            {{ m }}
+            <label>Add comments:</label></br>
+            <textarea type="text" name="comment" cols="20" rows="5" placeholder="Leave your comments here."></textarea></br>
+            <input type="submit" name="submit_comment" value="submit comment!">
         </form>
+
+        <!-- a button to close auction and only creactor can view the button -->
+        {% if is_creator %}
+            <form action="{% url 'listing' listing.id %}" method="POST">
+                {% csrf_token %}
+                <input type="submit" name="close_auction" value="close">
+                {{ m }}
+            </form>
+        {% endif %}
     {% endif %}
     
 {% endblock %}

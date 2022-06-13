@@ -1,20 +1,22 @@
 from datetime import datetime
-from unicodedata import category
+from select import select
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import  HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+
+from auctions.utils import get_categories, submit_bid, submit_comment, update_watchlist
 from .models import Listing
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
 from .models import User
+from auctions import models
 
 
 def index(request):
     return render(request, "auctions/index.html", {
-        "Listings": Listing.objects.all(),
+        "Listings": Listing.objects.filter(is_active = True),
     })
 
 @login_required
@@ -43,7 +45,7 @@ def create(request):
         return HttpResponseRedirect(reverse("index"))
 
     return render(request, "auctions/create.html", {
-        "categories": {'Fashion', 'Toys', 'Home', 'Electronics'},
+        "categories": get_categories()
     })
 
 # show listing page
@@ -54,52 +56,38 @@ def listing(request, listing_id):
     # check if the listing is already in the watchlist of this user
     user = request.user
     is_watched = user.wishlistings.filter(id=listing.id)
+    is_creator = (listing.creator == user)
     # is_watched = listing.watchers.filter(wishlistings = listing.id)
     if request.method == "POST": 
-        # check if it is the post for watchlist
+
         if "update_watchlist" in request.POST: 
-            if not is_watched: # add the listing to watchlist
-                listing.watchers.add(user)
-            else: # remove from the listing to watchlist
-                listing.watchers.remove(user)
-            return HttpResponseRedirect(reverse("listing", args=(listing.id,)))
-
-            # if the post is to submit a bit
+            update_watchlist(is_watched, user, listing)
+            
         elif "submit_bid" in request.POST: 
-            bid = float(request.POST["bid"])
-            # set restrictions for new bid
-            previous_bid = listing.current_bid
-            if bid > previous_bid:
-                listing.current_bid = bid
-                listing.current_bidder = user
-                listing.save()
-                messages.success(request, 'Successfully bid.')
-            else:
-                messages.warning(request, 'Invalid bid.')
-            return HttpResponseRedirect(reverse("listing", args=(listing.id,)))
+            submit_bid(request, listing, user)
 
-    # user as the creator is able to close the auction
-    m = ""
-    if request.method == "POST" and "close_auction" in request.POST:
-        if user == listing.creator:
+        elif "submit_comment" in request.POST:
+            submit_comment(request, listing, user)
+        
+        elif "close_auction" in request.POST:
             listing.is_active = False
             listing.save()
-            m = "The bid is closed."
             return HttpResponseRedirect(reverse("index"))
-        else:
-            m = "You are not the creator!"
+
+        return HttpResponseRedirect(reverse("listing", args=(listing.id,)))
 
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "is_watched": is_watched,
-        "m" : m
+        "is_creator" : is_creator,
+        "comments": listing.comments.all()
     })
 
 # show watchlist page
 def watchlist(request):
     user = request.user
     return render(request, "auctions/watchlist.html", {
-        "wishlistings": user.wishlistings.all(),
+        "Listings": user.wishlistings.all(),
     })
 
 # show closed listings if user owns the auction
@@ -112,6 +100,20 @@ def closed_listings(request):
     return render(request, "auctions/closed_listings.html", {
         "listings" : owned_auctions,
     })
+
+# show listings based on categories
+def categories(request):
+    if request.method == "POST":
+        selected_category = request.POST["selected_category"]
+        return render(request, "auctions/categories.html", {
+            "categories": get_categories(),
+            "selected_category": selected_category,
+            "Listings": Listing.objects.filter(category=selected_category)
+        })
+    return render(request, "auctions/categories.html", {
+            "categories": get_categories(),
+            "Listings": Listing.objects.filter(is_active = True),
+        })
 
 def login_view(request):
     if request.method == "POST":
@@ -131,6 +133,7 @@ def login_view(request):
             })
     else:
         return render(request, "auctions/login.html")
+
 
 def logout_view(request):
     logout(request)

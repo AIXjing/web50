@@ -12,7 +12,7 @@
         <label>Category: </label>
         <select name="category">
             {% for category in categories %}
-                <option value="{{ category }}">{{ category }}</option>
+                <option value="{{ category }}">{{ category.lower.capitalize }}</option>
             {% endfor %}
         </select>
         </br>

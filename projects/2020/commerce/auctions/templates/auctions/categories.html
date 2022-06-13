@@ -1,0 +1,28 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Categories</h2>
+
+    <form action="{% url 'categories' %}" method="post">
+        {% csrf_token %}
+        <select name="selected_category" onchange="this.form.submit()">
+            {% if selected_category %}
+            <option value="selected_category">{{ selected_category.capitalize }}</option>
+            {% else %}
+                <option value="">--------</option>
+            {% endif %}
+
+            {% for category in categories %}
+                {% if category != selected_category %}
+                    <option value="{{ category }}">
+                        {{ category.capitalize }}
+                    </option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        <!-- <input type="submit"> -->
+    </form>
+
+    {% include "auctions/show_listings.html" %}
+    
+{% endblock %}
