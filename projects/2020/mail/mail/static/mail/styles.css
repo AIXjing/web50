@@ -1,0 +1,18 @@
+textarea {
+    min-height: 400px;
+}
+
+.timestamp {
+    float: right;
+}
+
+.mail-view-box {
+    background-color: rgba(188, 186, 186, 0.727);
+    border-style: solid;
+    border-radius: 5px;
+    border-color: rgba(138, 138, 141, 0.585);
+    border-width: 2px;
+    padding: 2%;
+    margin-bottom: 2%;
+}
+

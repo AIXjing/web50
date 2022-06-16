@@ -116,7 +116,7 @@ Except for html element, `document.querySelector()` can also accept `#id` and `.
 ```
 However, if we want to have three buttons in order to change the font with three colors, we can use `data-color` attribute in the tag instead of `id`. Here. to select all buttons, we could use `document.querySelector.All('button')`, which will return a *NodeList* like list in Python. To iterate each element in the NodeList, we can use NodeList method `.forEach()` where we can pass function of element to do something. 
 
-Here we could also use a dropdown to change the color. This requires to use `.onchange` even, and the selected color can pass to the font by assigin `this.value` where `this` refer to whatever the `select` recieved.
+Here we could also use a dropdown to change the color. This requires to use `.onchange` even, and the selected color can pass to the font by assigin `this.value` where `this` refer to whatever element the `select` recieved. In this case, the `function(){}` for event handler cannot be notated with `() =>  {}`
 
 *example6*
 ```html
