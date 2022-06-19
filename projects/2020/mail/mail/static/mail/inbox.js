@@ -53,7 +53,6 @@ function send_email(){
   return false;
 }
 
-
 function load_mailbox(mailbox) {
   
   // Show the mailbox and hide other views
@@ -63,29 +62,12 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
-  if (mailbox == 'sent') {
-    // load sent mail
-    fetch('/emails/sent')
-    .then(response => response.json())
-    .then(emails => {
-        // Print emails in console
-        console.log(emails);
-        // ... do something else with emails ...
-        emails.forEach(show_email);
-    });
-  }
-
-  if (mailbox == 'inbox') {
-    // load sent mail
-    fetch('/emails/inbox')
-    .then(response => response.json())
-    .then(emails => {
-        // Print emails in console
-        console.log(emails);
-        // ... do something else with emails ...
-        emails.forEach(show_email);
-    });
-  }
+  fetch(`/emails/${mailbox}`)
+  .then(response => response.json())
+  .then(emails => {
+      console.log(emails);
+      emails.forEach(show_email);
+  })
   
 }
 
@@ -96,15 +78,65 @@ function show_email(email) {
   // when mouse hover on an email, change the email box format
   element.addEventListener('mouseover', function(){
     this.style.background = "white";
-    element.addEventListener('click', function(){
-      location.href = "/emails/<email_id>";
-    })
+    element.addEventListener('click', function(){load_email(email.id)});
   })
   element.addEventListener('mouseout', function(){
     this.style.background = "rgba(188, 186, 186, 0.727)";
-    element.addEventListener('click', function(){
-      location.href = "/emails/<email_id>";
-    })
   })
   document.querySelector('#emails-view').append(element);
 }
+
+
+function load_email(email_id) {
+  // Show the mailbox and hide other views
+  document.querySelector('#emails-view').style.display = 'block';
+  document.querySelector('#compose-view').style.display = 'none';
+
+  fetch(`/emails/${email_id}`)
+  .then(response => response.json())
+  .then(email => {
+    console.log(email);
+    let arch = '';
+    if (email.archived === true) {arch = 'Archived'}
+    else {arch = 'Archive'}
+
+    document.querySelector('#emails-view').innerHTML = 
+    `<b>From:</b> ${email.sender} </br>
+      <b>To:</b> ${email.recipients} </br>
+      <b>Subject:</b> ${email.subject} </br>
+      <b>Timestamp:</b> ${email.timestamp} </div>  </br>
+      <button class="btn btn-sm btn-outline-primary" id="reply">Reply</button>
+      <button class="btn btn-sm btn-outline-primary" id="read">${email.read}</button>
+      <button class="btn btn-sm btn-outline-primary" id="archive-button">${arch}</button>
+      <hr>
+      ${email.body} </br>
+      <hr> </br>
+      For check: 
+      Is read? : ${email.read} </br>
+      Is archived? : ${email.archived} </br> 
+    `
+    console.log(email)
+    // document.querySelector('#reply-button').onclick = function(){reply_email(email)};
+    // document.querySelector('#read-button').onclick = function(){read_email(email) };
+    // if (request.user === email.sender) {
+    //   document.querySelector('#archive-button').style.display = 'invisible';
+    // } else {
+    //   document.querySelector('#archive-button').addEventListener('click', () => archive_email(email));
+    // }
+  })
+}
+
+function archive_email(email) {
+  const email_id = email.id;
+  fetch(`/emails/${email_id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: true
+    })
+  })
+  // console.log("isArchived: " + email.archived)
+  load_mailbox('inbox')
+}
+
+    
+
