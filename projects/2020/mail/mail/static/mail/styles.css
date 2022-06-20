@@ -16,3 +16,7 @@ textarea {
     margin-bottom: 2%;
 }
 
+.mail-view-box:hover {
+    background-color: rgba(85, 170, 206, 0.8);
+}
+
