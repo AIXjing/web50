@@ -10,9 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // By default, load the inbox
   load_mailbox('inbox');
 
-  // Add event listener to the form
-  document.querySelector('#compose-form').onsubmit = send_email;
-
 });
 
 function compose_email() {
@@ -20,6 +17,9 @@ function compose_email() {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
+
+  // Add event listener to the form
+  document.querySelector('#compose-form').onsubmit = send_email;
 
   // Clear out composition fields
   document.querySelector('#compose-recipients').value = '';
@@ -49,7 +49,7 @@ function send_email(){
     alert("Error", error);
   });
   // refer to: https://cs50.stackexchange.com/questions/39316/cs50w-2020-project3-mail-does-not-show-new-sent-mail-after-sending/41032#41032?newreg=2663463db11c461bbc518e0140e5aae2
-  setTimeout(function(){ load_mailbox('sent'); }, 100);
+  setTimeout(function(){ load_mailbox('inbox'); }, 100);
   return false;
 }
 
@@ -67,7 +67,7 @@ function load_mailbox(mailbox) {
   .then(emails => {
       console.log(emails);
       // show emails depending on clicked mailbox
-      emails.forEach(function(email) {
+      emails.forEach(email => {
         show_emails(email, mailbox);
       });
   })
@@ -89,7 +89,7 @@ function show_emails(email, mailbox) {
   element.addEventListener('mouseenter', function(){
     this.style.backgroundColor = 'rgb(56,152,255)'; 
   })
-  element.addEventListener('click', function(){
+  element.addEventListener('click', () => {
     const email_id = email.id;
     fetch(`/emails/${email_id}`, {
       method: 'PUT',
@@ -100,7 +100,7 @@ function show_emails(email, mailbox) {
     console.log("read: ", email.read)
     setInterval(load_email(email.id, mailbox), 1000);
   })
-  element.addEventListener('mouseleave', function(){
+  element.addEventListener('mouseleave', function() {
     this.style.backgroundColor = bgcolor; 
   })
   document.querySelector('#emails-view').append(element);
@@ -112,7 +112,7 @@ function load_email(email_id, mailbox) {
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
 
-  // Show all the mail view box
+  // hide all the mail view box
   document.querySelectorAll('.mail-view-box').forEach(function(box) {
     box.style.display = 'none';
   })
@@ -146,13 +146,24 @@ function load_email(email_id, mailbox) {
     const archive_button = document.createElement('button');
     archive_button.innerHTML = ` ${arch}`;
     archive_button.classList = "btn btn-sm btn-outline-primary";
+    archive_button.id = 'archive_button';
     archive_button.style.display = 'inline';
     if (mailbox !== 'sent') {
       email_info.append("  ");
       email_info.append(archive_button);
     } 
+    console.log("archived:", email.archived)
+    archive_button.addEventListener('click', function() {
+      fetch(`/emails/${email_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          archived: !email.archived
+        })
+      })
+      setInterval(1000)
+      return false;
+    })
     
-
     // the 3rd part: the body
     const email_body = document.createElement('div');
     email_body.innerHTML = 
@@ -165,18 +176,27 @@ function load_email(email_id, mailbox) {
     document.querySelector('#emails-view').append(email_body);
     console.log(email)
   })
+
 }
 
-function archive_email(email) {
-  const email_id = email.id;
+function archive_email(email_id) {
+  var archive_status
+  fetch(`/emails/${email_id}`)
+  .then(response => response.json())
+  .then(email => {
+    archive_status = email.archived
+  })
+
   fetch(`/emails/${email_id}`, {
     method: 'PUT',
     body: JSON.stringify({
-      archived: true
+      archived: !archive_status
     })
   })
-  // console.log("isArchived: " + email.archived)
-  load_mailbox('inbox')
+  setInterval(1000);  
+  
+  // load_email(email_id, 'archived');
+  
 }
 
     
