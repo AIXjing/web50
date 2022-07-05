@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
 
-
   // By default, load the inbox
   load_mailbox('inbox');
 
 });
+
 
 function compose_email() {
 
@@ -26,6 +26,8 @@ function compose_email() {
   document.querySelector('#compose-subject').value = '';
   document.querySelector('#compose-body').value = '';
 }
+
+
 
 function send_email(){
   const recipients = document.querySelector("#compose-recipients").value;
@@ -50,8 +52,9 @@ function send_email(){
   });
   // refer to: https://cs50.stackexchange.com/questions/39316/cs50w-2020-project3-mail-does-not-show-new-sent-mail-after-sending/41032#41032?newreg=2663463db11c461bbc518e0140e5aae2
   setTimeout(function(){ load_mailbox('inbox'); }, 100);
-  return false;
 }
+
+
 
 function load_mailbox(mailbox) {
   
@@ -65,7 +68,7 @@ function load_mailbox(mailbox) {
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
-      console.log(emails);
+      // console.log(emails);
       // show emails depending on clicked mailbox
       emails.forEach(email => {
         show_emails(email, mailbox);
@@ -77,11 +80,11 @@ function show_emails(email, mailbox) {
   const element = document.createElement('div');
   element.className = 'mail-view-box';
   element.innerHTML = `${email.sender}:    ${email.subject}  <div class="timestamp"> ${email.timestamp} </div>`;
-  // if an email is read, the box should be white, otherwise gray
+  // if an email is read, the box show as grey, otherwise white
   if (email.read === true) {
-    element.style.backgroundColor = 'white';
-  } else {
     element.style.backgroundColor = 'rgba(188, 186, 186, 0.727)';
+  } else {
+    element.style.backgroundColor = 'white';
   }
   let bgcolor = element.style.backgroundColor;
   
@@ -89,6 +92,7 @@ function show_emails(email, mailbox) {
   element.addEventListener('mouseenter', function(){
     this.style.backgroundColor = 'rgb(56,152,255)'; 
   })
+  // once the email is open, it will be marked as read, i.e., the button will show 'Unread'.
   element.addEventListener('click', () => {
     const email_id = email.id;
     fetch(`/emails/${email_id}`, {
@@ -97,8 +101,7 @@ function show_emails(email, mailbox) {
         read: true
       })
     })
-    console.log("read: ", email.read)
-    setInterval(load_email(email.id, mailbox), 1000);
+    setTimeout(load_email, 100, email.id, mailbox);
   })
   element.addEventListener('mouseleave', function() {
     this.style.backgroundColor = bgcolor; 
@@ -117,7 +120,6 @@ function load_email(email_id, mailbox) {
     box.style.display = 'none';
   })
 
-
   fetch(`/emails/${email_id}`)
   .then(response => response.json())
   .then(email => {
@@ -127,16 +129,27 @@ function load_email(email_id, mailbox) {
     const email_info = document.createElement('div');
     // pass email.read status to a string that can show in the button
     let read_state = '';
-    if (email.read === true) {read_state = 'Read'}
-    else {read_state = 'Unread'}
+    if (email.read === true) {read_state = 'Unread'}
+    else {read_state = 'Read'}
     email_info.innerHTML = 
       `<b>From:</b> ${email.sender} </br>
       <b>To:</b> ${email.recipients} </br>
       <b>Subject:</b> ${email.subject} </br>
       <b>Timestamp:</b> ${email.timestamp} </div>  </br>
-      <button class="btn btn-sm btn-outline-primary" id="reply">Reply</button>
-      <button class="btn btn-sm btn-outline-primary" id="read">${read_state}</button>`
+      <button class="btn btn-sm btn-outline-primary" id="reply_button">Reply</button>
+      <button class="btn btn-sm btn-outline-primary" id="read_button">${read_state}</button>`
     document.querySelector('#emails-view').append(email_info);
+
+    // listen to read button
+    document.querySelector('#read_button').addEventListener('click', function() {
+      fetch(`/emails/${email_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          read: !email.read
+        })
+      })
+      setTimeout(load_mailbox, 100, 'inbox');
+    })
 
     // the 2nd part: the Archive button
     // pass email.archived status to a string that can show in the button
@@ -152,7 +165,6 @@ function load_email(email_id, mailbox) {
       email_info.append("  ");
       email_info.append(archive_button);
     } 
-    console.log("archived:", email.archived)
     archive_button.addEventListener('click', function() {
       fetch(`/emails/${email_id}`, {
         method: 'PUT',
@@ -160,7 +172,7 @@ function load_email(email_id, mailbox) {
           archived: !email.archived
         })
       })
-      setInterval(1000)
+      setTimeout(load_mailbox, 100, 'inbox')
       return false;
     })
     
@@ -176,28 +188,8 @@ function load_email(email_id, mailbox) {
     document.querySelector('#emails-view').append(email_body);
     console.log(email)
   })
-
 }
 
-function archive_email(email_id) {
-  var archive_status
-  fetch(`/emails/${email_id}`)
-  .then(response => response.json())
-  .then(email => {
-    archive_status = email.archived
-  })
-
-  fetch(`/emails/${email_id}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      archived: !archive_status
-    })
-  })
-  setInterval(1000);  
-  
-  // load_email(email_id, 'archived');
-  
-}
 
     
 
