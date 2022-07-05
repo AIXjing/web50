@@ -33,7 +33,6 @@ function send_email(){
   const recipients = document.querySelector("#compose-recipients").value;
   const subject = document.querySelector("#compose-subject").value;
   const body = document.querySelector("#compose-body").value;
-  // console.log(recipients);
 
   fetch('/emails', {
     method: 'POST',
@@ -57,7 +56,6 @@ function send_email(){
 
 
 function load_mailbox(mailbox) {
-  
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
@@ -76,6 +74,8 @@ function load_mailbox(mailbox) {
   })
 }
 
+
+// display maillist
 function show_emails(email, mailbox) {
   const element = document.createElement('div');
   element.className = 'mail-view-box';
@@ -110,6 +110,7 @@ function show_emails(email, mailbox) {
 }
 
 
+// display a single email with details
 function load_email(email_id, mailbox) {
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
@@ -140,7 +141,9 @@ function load_email(email_id, mailbox) {
       <button class="btn btn-sm btn-outline-primary" id="read_button">${read_state}</button>`
     document.querySelector('#emails-view').append(email_info);
 
-    // listen to read button
+    document.querySelector('#reply_button').addEventListener('click', () => reply_email(email));
+    
+    // click the read-button to change the 'read' status and return banc to inbox
     document.querySelector('#read_button').addEventListener('click', function() {
       fetch(`/emails/${email_id}`, {
         method: 'PUT',
@@ -165,6 +168,7 @@ function load_email(email_id, mailbox) {
       email_info.append("  ");
       email_info.append(archive_button);
     } 
+    // click the 'archive-button' to change 'archive' status and return back to inbox 
     archive_button.addEventListener('click', function() {
       fetch(`/emails/${email_id}`, {
         method: 'PUT',
@@ -173,7 +177,6 @@ function load_email(email_id, mailbox) {
         })
       })
       setTimeout(load_mailbox, 100, 'inbox')
-      return false;
     })
     
     // the 3rd part: the body
@@ -186,8 +189,28 @@ function load_email(email_id, mailbox) {
       Is read? : ${email.read} </br>
       Is archived? : ${email.archived} </br>`
     document.querySelector('#emails-view').append(email_body);
-    console.log(email)
+    // console.log(email)
   })
+}
+  
+
+
+// reply to an email
+function reply_email(email) {
+    // Show compose view and hide other views
+    document.querySelector('#emails-view').style.display = 'none';
+    document.querySelector('#compose-view').style.display = 'block';
+
+    document.querySelector('#compose-recipients').value = email.sender;
+    document.querySelector('#compose-subject').value = "Re: " + email.subject;
+    const pre_body = `\n ----------------------------- \n ${email.timestamp} ${email.sender}  wrote: \n ${email.body}`;
+    document.querySelector('#compose-body').value = pre_body;
+    console.log(pre_body)
+
+    document.querySelector('#compose-form').onsubmit = send_email;
+
+    //TODO: Error message after submit despite succesfully submission
+    //TODO: multi lines
 }
 
 
