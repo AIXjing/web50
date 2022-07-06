@@ -30,9 +30,10 @@ function compose_email() {
 
 
 function send_email(){
+  console.log('sent')
   const recipients = document.querySelector("#compose-recipients").value;
   const subject = document.querySelector("#compose-subject").value;
-  const body = document.querySelector("#compose-body").value;
+  const body = document.querySelector("#compose-body").value.replaceAll('\n', '</br>');
 
   fetch('/emails', {
     method: 'POST',
@@ -44,7 +45,7 @@ function send_email(){
   })
   .then(response => response.json())
   .then(result => {
-    console.log("result", result);
+    setTimeout(console.log("result", result),100);
   })
   .catch(error => {
     alert("Error", error);
@@ -132,6 +133,7 @@ function load_email(email_id, mailbox) {
     let read_state = '';
     if (email.read === true) {read_state = 'Unread'}
     else {read_state = 'Read'}
+    console.log('read status: ', email.read);
     email_info.innerHTML = 
       `<b>From:</b> ${email.sender} </br>
       <b>To:</b> ${email.recipients} </br>
@@ -143,15 +145,16 @@ function load_email(email_id, mailbox) {
 
     document.querySelector('#reply_button').addEventListener('click', () => reply_email(email));
     
-    // click the read-button to change the 'read' status and return banc to inbox
-    document.querySelector('#read_button').addEventListener('click', function() {
+    // click the read-button to change the 'read' status and return back to inbox
+    document.querySelector('#read_button').addEventListener('click', () => {
       fetch(`/emails/${email_id}`, {
         method: 'PUT',
         body: JSON.stringify({
-          read: !email.read
+          read: !read_state
         })
       })
       setTimeout(load_mailbox, 100, 'inbox');
+      console.log("is_read: ", !read_state)
     })
 
     // the 2nd part: the Archive button
@@ -183,11 +186,7 @@ function load_email(email_id, mailbox) {
     const email_body = document.createElement('div');
     email_body.innerHTML = 
       `<hr>
-      ${email.body} </br>
-      <hr> </br>
-      For check: 
-      Is read? : ${email.read} </br>
-      Is archived? : ${email.archived} </br>`
+      ${email.body.replaceAll('\n', '</br>')} </br>`
     document.querySelector('#emails-view').append(email_body);
     // console.log(email)
   })
@@ -202,11 +201,19 @@ function reply_email(email) {
     document.querySelector('#compose-view').style.display = 'block';
 
     document.querySelector('#compose-recipients').value = email.sender;
-    document.querySelector('#compose-subject').value = "Re: " + email.subject;
-    const pre_body = `\n ----------------------------- \n ${email.timestamp} ${email.sender}  wrote: \n ${email.body}`;
-    document.querySelector('#compose-body').value = pre_body;
-    console.log(pre_body)
+    // check if subject is started with 'Re: ' already
+    const old_subject = email.subject;
+    console.log('old_subject: ', old_subject);
+    if (old_subject.slice(0,3) !== 'Re:') {
+      document.querySelector('#compose-subject').value = "Re: " + old_subject;
+    } else {
+      document.querySelector('#compose-subject').value = old_subject;
+    }
+    
+    const pre_body = `\n ----------------------------- \n ${email.timestamp} ${email.sender}  wrote: \n \n ${email.body}`;
+    document.querySelector('#compose-body').value = pre_body.replaceAll('</br>', '\n');
 
+    // document.querySelector('#compose-form').onsubmit = send_email;
     document.querySelector('#compose-form').onsubmit = send_email;
 
     //TODO: Error message after submit despite succesfully submission
