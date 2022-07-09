@@ -1,25 +1,17 @@
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
 class User(AbstractUser):
-    followers = models.ForeignKey("User", on_delete=models.CASCADE, related_name="following")
-    posters = models.ForeignKey("Post", on_delete=models.CASCADE, related_name="poster")
-
-
-
+    follows = models.ManyToManyField("User", related_name="followings")
+    likes = models.ManyToManyField("Post", related_name="liked_uses")
 
 class Post(models.Model):
-    poster = models.ForeignKey(User, on_delete=models.CASCADE)
-    likes = models.ForeignKey(User, on_delete=models.CASCADE, related_name='liked_post')
+    poster = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
+    subjet = models.CharField(max_length=124)
     timestamp = models.DateTimeField(auto_now_add=True)
-    subject = models.CharField(max_length=255)
 
-    # why we need this?
-    def serialize(self):
-        return {
-            "poster": self.poster,
-            "likes": self.likes,
-            "timestamp": self.timestamp,
-            "subject": self.subject,
-        }
+    def __str__(self):
+        return f"{self.poster}: {self.timestamp}  {self.subjet}"
+    
