@@ -30,7 +30,6 @@ function compose_email() {
 
 
 function send_email(){
-  console.log('sent')
   const recipients = document.querySelector("#compose-recipients").value;
   const subject = document.querySelector("#compose-subject").value;
   const body = document.querySelector("#compose-body").value.replaceAll('\n', '</br>');

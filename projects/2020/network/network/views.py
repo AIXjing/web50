@@ -1,14 +1,71 @@
+import json
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from datetime import datetime
 
-from .models import User
+from .models import Post, User
 
 
 def index(request):
-    return render(request, "network/index.html")
+
+    # Authenticated users view their inbox
+    if request.user.is_authenticated:
+        return render(request, "network/index.html")
+
+    # Everyone else is prompted to sign in
+    else:
+        return HttpResponseRedirect(reverse("login"))
+
+@csrf_exempt
+@login_required
+def compose(request):
+     # Composing a new email must be via POST
+    if request.method != "POST":
+       return JsonResponse({"error": "POST request required."}, status=400)
+
+    # Get Post data using json    
+    data = json.loads(request.body)
+    print("data: ", data)
+    if data.get("subject", "") == "":
+        return JsonResponse({
+            "error": "Cannot post an empty message"
+        }, status=400)
+    else:
+        poster = request.user
+        print("poster: ", poster)
+        post_subject = data.get("subject","")
+        print("post_subject: ", post_subject)
+        timestamp = datetime.now
+
+        # Save it to Post Class
+        post = Post(
+            poster = poster,
+            subject = post_subject, 
+            timestamp = timestamp)
+        print("post: ", post)
+        post.save()
+        
+        #return HttpResponseRedirect(reverse("index"))
+        return JsonResponse({"message": "Post successfully."}, status=201)
+
+
+def show_posts(request):
+    posts = Post.objects.all()
+
+    # Return emails in reverse chronologial order
+    posts = posts.order_by("-timestamp").all()
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+
+def post(request, post_id):
+    pass
+
+def page(request, pagename):
+    pass
 
 
 def login_view(request):

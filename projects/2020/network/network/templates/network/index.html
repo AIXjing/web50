@@ -1,5 +1,25 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block body %}
-    TODO
+    <h2> All Posts </h2>
+
+    <div id="compose-view">
+        <h3>New post</h3>
+        <form id="compose-form">
+            <div class="form-group">
+                <textarea class="form-control" id="post-subject" placeholder="new post" rows="3" style="width:60%;"></textarea>
+                <input type="submit" class="btn btn-primary submit-button-diy"/>
+            </div>
+        </form>
+    </div>
+
+    <div id="post-view">
+        <div>Some posts here.</div>
+    </div>
+   
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/inbox.js' %}"></script>
 {% endblock %}
