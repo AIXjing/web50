@@ -1,14 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded')
+    // console.log('DOM loaded')
     document.querySelector('#compose-form').onsubmit = compose_post;
 
-    // show_posts();
+    show_posts();
 });
 
 function compose_post(){
     
     const subject = document.querySelector('#post-subject').value;
-    console.log('ready to submit the form!')
     
     fetch('/posts/compose', {
         method: 'POST',
@@ -17,8 +16,8 @@ function compose_post(){
         })
     })
     .then(res => res.json())
-    .then(res => {
-        setTimeout(console.log('response: ', res), 100)
+    .then(data => {
+        console.log(data)
     })
     .catch(error => {
         alert("Error", error);
@@ -32,15 +31,16 @@ function show_posts(){
     fetch('/posts')
     .then(res => res.json())
     .then(posts => {
-        console.log(posts);
-        // show emails depending on clicked mailbox
-        // posts.forEach(post => {
-        //     load_post(post);
-        // });
+        console.log(posts)
+        posts.forEach(post => {
+            load_post(post);
+        });
     })
 }
 
 
 function load_post(post){
-    pass
+    const post_box = document.createElement('div');
+    post_box.innerHTML = `${post.poster}: ${post.subject} \n ${post.timestamp}`
+    document.querySelector('#post-view').append(post_box);
 }

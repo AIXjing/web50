@@ -30,16 +30,14 @@ def compose(request):
 
     # Get Post data using json    
     data = json.loads(request.body)
-    print("data: ", data)
+    print("body: ", data.get("subject", ""))
     if data.get("subject", "") == "":
         return JsonResponse({
             "error": "Cannot post an empty message"
         }, status=400)
     else:
         poster = request.user
-        print("poster: ", poster)
-        post_subject = data.get("subject","")
-        print("post_subject: ", post_subject)
+        post_subject = data.get("subject")
         timestamp = datetime.now
 
         # Save it to Post Class
@@ -51,11 +49,12 @@ def compose(request):
         post.save()
         
         #return HttpResponseRedirect(reverse("index"))
-        return JsonResponse({"message": "Post successfully."}, status=201)
+    return JsonResponse({"message": "Post successfully."})
 
 
 def show_posts(request):
     posts = Post.objects.all()
+    print(posts)
 
     # Return emails in reverse chronologial order
     posts = posts.order_by("-timestamp").all()
