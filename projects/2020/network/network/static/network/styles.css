@@ -5,3 +5,12 @@
 .submit-button-diy {
     margin-top: 10px;
 }
+
+#post-box {
+    border-style: solid;
+    border-radius: 5px;
+    border-color: rgba(138, 138, 141, 0.585);
+    border-width: 2px;
+    padding: 1%;
+    margin-bottom: 2%;
+}

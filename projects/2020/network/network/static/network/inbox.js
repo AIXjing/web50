@@ -41,6 +41,13 @@ function show_posts(){
 
 function load_post(post){
     const post_box = document.createElement('div');
-    post_box.innerHTML = `${post.poster}: ${post.subject} \n ${post.timestamp}`
+    // post_box.innerHTML = `${post.poster}: ${post.subject} \n ${post.timestamp}`
+    post_box.id="post-box"
+    post_box.innerHTML=`
+        <div style='font-size:20px'> ${post.poster} </div>
+        <div> ${post.subject} </div> 
+        <div style='color:gray'> ${post.timestamp} </div> 
+        <div> ${post.likes} </div> 
+        `
     document.querySelector('#post-view').append(post_box);
 }
